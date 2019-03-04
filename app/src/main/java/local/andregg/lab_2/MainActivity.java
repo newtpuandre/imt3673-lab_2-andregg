@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     }
 
     @Override
-    public void onItemClick(View view, int position) {
+    public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
         Toast.makeText(this, "POG", Toast.LENGTH_SHORT).show();
     }
 }

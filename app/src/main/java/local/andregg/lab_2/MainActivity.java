@@ -25,8 +25,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         final Button btnSettings = findViewById(R.id.settings_button);
 
         //Dummy data
-        ArrayList<String> testData = new ArrayList<>();
-        testData.add("Nothing here yet... Please add a RSS / ATOM 2.0 feed in the settings tab.");
+        ArrayList<NewsItem> testData = new ArrayList<>();
+        NewsItem testNewsItem = new NewsItem("link", "testHeader", "TestDescription");
+        testData.add(testNewsItem);
 
 
         //Set up the RecyclerView

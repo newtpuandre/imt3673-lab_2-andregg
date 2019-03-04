@@ -2,6 +2,7 @@ package local.andregg.lab_2;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,12 @@ import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    private List<String> mData;
+    private List<NewsItem> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    RecyclerViewAdapter(Context context, List<String> data) {
+    RecyclerViewAdapter(Context context, List<NewsItem> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -31,8 +32,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String item = mData.get(position);
-        holder.myTextView.setText(item);
+        NewsItem item = mData.get(position);
+        Log.d("app1", item.returnHeader() + " " + item.returnDescription());
+        holder.newsItemHeader.setText(item.returnHeader());
+        holder.newsItemDescription.setText(item.returnDescription());
+
+        //Log.d("app1", String.valueOf( mDataDescription.size()) + " " + String.valueOf( mData.size()));
+
+
     }
 
     // total number of rows
@@ -44,11 +51,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView myTextView;
+        TextView newsItemHeader;
+        TextView newsItemDescription;
 
         ViewHolder(View itemView) {
             super(itemView);
-            myTextView = itemView.findViewById(R.id.newsItem);
+            newsItemHeader = itemView.findViewById(R.id.newsItemHeader);
+            newsItemDescription = itemView.findViewById(R.id.newsItemDescription);
+
             itemView.setOnClickListener(this);
         }
 
@@ -59,7 +69,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     // convenience method for getting data at click position
-    String getItem(int id) {
+    NewsItem getItem(int id) {
         return mData.get(id);
     }
 

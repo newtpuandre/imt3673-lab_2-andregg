@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     RecyclerViewAdapter adapter;
     public static final String PREFS_NAME = "MyNewsReader";
-    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +30,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         final Button btnSettings = findViewById(R.id.settings_button);
         FeedFetcher fetcher = new FeedFetcher();
 
+        //Shared preferences
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
         final ArrayList<NewsItem> testData = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, testData);
         adapter.setClickListener(this);
@@ -38,17 +40,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         String url ="https://www.vg.no/rss/feed/?categories=1068%2C1069%2C1070%2C1101%2C1107&limit=100&format=rss&private=0&submit=Abonn%C3%A9r+n%C3%A5%21";
         new Thread(() -> {
             final SyndFeed feeds = fetcher.Fetch(url);
-            for (SyndEntry entry : feeds.getEntries()) {
-                String description;
-                if (entry.getDescription().getValue().length() > 100) {
-                    description = entry.getDescription().getValue().substring(0, 100) + "...";
-                }else{
-                    description = entry.getDescription().getValue();
+
+                for (SyndEntry entry : feeds.getEntries()) {
+                    String description;
+                    if (entry.getDescription().getValue().length() > 100) {
+                        description = entry.getDescription().getValue().substring(0, 100) + "...";
+                    }else{
+                        description = entry.getDescription().getValue();
+                    }
+                    NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
+                    testData.add(newNewsItem);
                 }
-                NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
-                testData.add(newNewsItem);
-            }
-            Log.d("app1", "Done");
+                updateData();
         }).start();
 
         //Set up the RecyclerView
@@ -68,7 +71,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     @Override
     public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
         Toast.makeText(this, "POG", Toast.LENGTH_SHORT).show();
-        adapter.notifyDataSetChanged();
+
     }
 
+    public void updateData(){
+        runOnUiThread(() -> adapter.notifyDataSetChanged());
+    }
 }

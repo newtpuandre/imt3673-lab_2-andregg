@@ -37,7 +37,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         adapter = new RecyclerViewAdapter(this, testData);
         adapter.setClickListener(this);
 
-        String url ="https://www.vg.no/rss/feed/?categories=1068%2C1069%2C1070%2C1101%2C1107&limit=100&format=rss&private=0&submit=Abonn%C3%A9r+n%C3%A5%21";
+        String url = prefs.getString("URL", "");
+
         new Thread(() -> {
             final SyndFeed feeds = fetcher.Fetch(url);
 

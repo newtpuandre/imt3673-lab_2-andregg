@@ -33,14 +33,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         NewsItem item = mData.get(position);
-        Log.d("app1", item.returnHeader() + " " + item.returnDescription());
         holder.newsItemHeader.setText(item.returnHeader());
         holder.newsItemDescription.setText(item.returnDescription());
-
-
-        //Log.d("app1", String.valueOf( mDataDescription.size()) + " " + String.valueOf( mData.size()));
-
-
     }
 
     // total number of rows

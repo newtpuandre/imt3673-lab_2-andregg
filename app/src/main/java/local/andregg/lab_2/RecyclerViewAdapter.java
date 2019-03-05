@@ -37,6 +37,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.newsItemHeader.setText(item.returnHeader());
         holder.newsItemDescription.setText(item.returnDescription());
 
+
         //Log.d("app1", String.valueOf( mDataDescription.size()) + " " + String.valueOf( mData.size()));
 
 

@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.rometools.rome.feed.atom.Feed;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     RecyclerViewAdapter adapter;
     public static final String PREFS_NAME = "MyNewsReader";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,27 +35,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         //Shared preferences
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        final ArrayList<NewsItem> testData = new ArrayList<>();
-        adapter = new RecyclerViewAdapter(this, testData);
+        final ArrayList<NewsItem> data = new ArrayList<>();
+        adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
 
         String url = prefs.getString("URL", "");
 
-        new Thread(() -> {
-            final SyndFeed feeds = fetcher.Fetch(url);
-
-                for (SyndEntry entry : feeds.getEntries()) {
-                    String description;
-                    if (entry.getDescription().getValue().length() > 100) {
-                        description = entry.getDescription().getValue().substring(0, 100) + "...";
-                    }else{
-                        description = entry.getDescription().getValue();
-                    }
-                    NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
-                    testData.add(newNewsItem);
-                }
-                updateData();
-        }).start();
+        fetcher.Fetch(url, data, this);
 
         //Set up the RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerview);
@@ -72,10 +60,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     @Override
     public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
         Toast.makeText(this, "POG", Toast.LENGTH_SHORT).show();
-
+        Intent I = new Intent(MainActivity.this, ViewContentActivity.class);
+        I.putExtra("URL", "https://google.com");
+        startActivity(I);
     }
 
-    public void updateData(){
-        runOnUiThread(() -> adapter.notifyDataSetChanged());
+    public void updateRecyclerView(){
+       runOnUiThread(() -> adapter.notifyDataSetChanged());
     }
+
 }

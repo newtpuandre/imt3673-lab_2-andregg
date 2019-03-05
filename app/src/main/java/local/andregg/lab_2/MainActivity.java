@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
         Toast.makeText(this, "POG", Toast.LENGTH_SHORT).show();
         Intent I = new Intent(MainActivity.this, ViewContentActivity.class);
-        I.putExtra("URL", "https://google.com");
+        I.putExtra("URL", adapter.getItem(position).returnLink());
         startActivity(I);
     }
 

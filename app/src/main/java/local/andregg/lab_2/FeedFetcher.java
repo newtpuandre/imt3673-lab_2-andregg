@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 public class FeedFetcher {
     private int feedLimit;
@@ -60,19 +61,29 @@ public class FeedFetcher {
 
         new Thread(() -> { //Start fetching in a new thread
                 final SyndFeed feeds = RunFetch(url);
+                int numFeeds;
                 SyndEntry entry;
-                Log.d("app1", Integer.toString(feedLimit));
 
-                for (int i = 0; i <= feedLimit; i++) {
+                if (feeds.getEntries().size() <= feedLimit) {
+                    numFeeds = feeds.getEntries().size();
+                } else {
+                    numFeeds = feedLimit;
+                }
+
+                for (int i = 0; i < numFeeds; i++) {
                     entry = feeds.getEntries().get(i);
                     Log.d("app1", Integer.toString(i));
                     String description;
-
-                    if (entry.getDescription().getValue().length() > 100) { //Make sure the description isnt to long
-                        description = entry.getDescription().getValue().substring(0, 100) + "...";
-                    }else{
-                        description = entry.getDescription().getValue();
+                    if(entry.getDescription() != null) {
+                        if (entry.getDescription().getValue().length() > 100) { //Make sure the description isnt to long
+                            description = entry.getDescription().getValue().substring(0, 100) + "...";
+                        }else{
+                            description = entry.getDescription().getValue();
+                        }
+                    } else {
+                        description = "No description provided";
                     }
+
 
                     NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
                     data.add(newNewsItem);

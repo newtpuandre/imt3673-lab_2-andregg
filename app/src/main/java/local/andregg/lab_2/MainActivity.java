@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 
@@ -15,7 +16,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     RecyclerViewAdapter adapter;
     public static final String PREFS_NAME = "MyNewsReader";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+
+
         //Settings button logic
         btnSettings.setOnClickListener(v -> {
             Intent I = new Intent(MainActivity.this, SettingsActivity.class);
@@ -60,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     public void updateRecyclerView(){
        runOnUiThread(() -> adapter.notifyDataSetChanged());
+
     }
 
 }

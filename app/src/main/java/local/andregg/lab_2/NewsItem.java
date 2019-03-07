@@ -6,8 +6,6 @@ public class NewsItem {
     private String header;
     private String description;
 
-    NewsItem(){}
-
     NewsItem(String m_link, String m_header, String m_description){
         this.link = m_link;
         this.header = m_header;

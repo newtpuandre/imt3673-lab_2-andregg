@@ -25,8 +25,6 @@ public class ViewContentActivity extends AppCompatActivity {
 
         Intent I = getIntent();
         webview.loadUrl(I.getStringExtra("URL"));
-
-        //finish();
-
+        
     }
 }

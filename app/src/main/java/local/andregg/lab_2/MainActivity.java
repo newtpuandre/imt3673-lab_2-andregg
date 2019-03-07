@@ -6,14 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
-
-import com.rometools.rome.feed.atom.Feed;
-import com.rometools.rome.feed.synd.SyndEntry;
-import com.rometools.rome.feed.synd.SyndFeed;
 
 import java.util.ArrayList;
 
@@ -28,18 +22,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Variables
-        final Button btnSettings = findViewById(R.id.settings_button);
-        FeedFetcher fetcher = new FeedFetcher();
-
         //Shared preferences
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int Limit = prefs.getInt("Limit", -1);
+        String url = prefs.getString("URL", "");
+
+        //Variables
+        final Button btnSettings = findViewById(R.id.settings_button);
+        FeedFetcher fetcher = new FeedFetcher(Limit);
 
         final ArrayList<NewsItem> data = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
-
-        String url = prefs.getString("URL", "");
 
         fetcher.Fetch(url, data, this);
 
@@ -59,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     @Override
     public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
-        Toast.makeText(this, "POG", Toast.LENGTH_SHORT).show();
         Intent I = new Intent(MainActivity.this, ViewContentActivity.class);
         I.putExtra("URL", adapter.getItem(position).returnLink());
         startActivity(I);

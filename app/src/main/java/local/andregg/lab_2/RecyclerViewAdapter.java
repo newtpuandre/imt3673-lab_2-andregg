@@ -35,6 +35,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         NewsItem item = mData.get(position);
         holder.newsItemHeader.setText(item.returnHeader());
         holder.newsItemDescription.setText(item.returnDescription());
+
     }
 
     // total number of rows
@@ -43,8 +44,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return mData.size();
     }
 
-    public void applyFilter(String regex){
-        //if ()
+    public void clear(MainActivity ref){
+        mData.clear();
+        ref.updateRecyclerView();
+    }
+
+    public void setData(MainActivity ref, List<NewsItem> data) {
+        this.mData = data;
+        ref.updateRecyclerView();
     }
 
 

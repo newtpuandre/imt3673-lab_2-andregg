@@ -2,13 +2,16 @@ package local.andregg.lab_2;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
 public class FetchNewsIntentService extends Service {
 
     public static boolean isServiceRunning = false;
     private static int updateFreq = -1;
     private static String url = "";
+    Handler mHandler;
 
     @Override
     public void onCreate() {
@@ -17,10 +20,8 @@ public class FetchNewsIntentService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.getAction().equals("local.andregg.lab_2 test")) {
-            FetchNews(2);
-        }
-        else stopMyService();
+        mHandler = new Handler();
+        FetchNews();
         return START_STICKY;
     }
 
@@ -37,10 +38,19 @@ public class FetchNewsIntentService extends Service {
         return null;
     }
 
-    private void FetchNews(int updatefreq){
-
+    private void FetchNews(){
+        try {
+            Log.d("app1", "testFetch");
+        } catch (Exception e) {
+            Log.e("Error", "In onStartCommand");
+            e.printStackTrace();
+        }
+        scheduleNext();
     }
 
+    private void scheduleNext() {
+        mHandler.postDelayed(() -> FetchNews(), 5000);
+    }
 
     void stopMyService() {
         stopSelf();

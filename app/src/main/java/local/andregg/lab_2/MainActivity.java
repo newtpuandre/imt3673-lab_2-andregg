@@ -6,11 +6,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ItemClickListener{
 
@@ -30,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         //Variables
         final Button btnSettings = findViewById(R.id.settings_button);
+        final EditText filterTxt = findViewById(R.id.filter_txt);
         FeedFetcher fetcher = new FeedFetcher(Limit);
 
         final ArrayList<NewsItem> data = new ArrayList<>();
@@ -45,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         //Start service
         Intent FetchIntent = new Intent(this, FetchNewsIntentService.class);
-        FetchIntent.setAction("local.andregg.lab_2 test");
+        FetchIntent.setAction("local.andregg.lab_2 test"); //TODO edit this string.
         startService(FetchIntent);
 
         //Settings button logic
@@ -54,6 +60,35 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             startActivity(I);
         });
 
+        filterTxt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString() != "") {
+                    //Use the filtered version
+                    ArrayList<NewsItem> temp = new ArrayList<>();
+                    for(int i = 0; i < data.size(); i++) {
+                        if(data.get(i).returnHeader().toLowerCase().contains(s.toString().toLowerCase()) ||
+                                data.get(i).returnDescription().toLowerCase().contains(s.toString().toLowerCase())) {
+                            temp.add(data.get(i));
+                        }
+                    }
+                    adapter.setData(MainActivity.this, temp);
+                } else {
+                    //Revert data back to original
+                    adapter.setData(MainActivity.this, data);
+                }
+
+                updateRecyclerView();
+                //adapter.
+            }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
+                 }
+
+            @Override
+            public void afterTextChanged(Editable s) {//Do nothing
+                 }
+        });
 
     }
 

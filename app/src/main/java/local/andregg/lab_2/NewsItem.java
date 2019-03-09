@@ -6,6 +6,7 @@ public class NewsItem {
     private String link;
     private String header;
     private String description;
+    private boolean hidden = false;
 
     NewsItem(String m_link, String m_header, String m_description){
         this.link = m_link;
@@ -23,6 +24,14 @@ public class NewsItem {
 
     public String returnDescription(){
         return this.description;
+    }
+
+    public boolean returnHidden(){
+        return this.hidden;
+    }
+
+    public void setHidden(boolean newStatus){
+        this.hidden = newStatus;
     }
 
 }

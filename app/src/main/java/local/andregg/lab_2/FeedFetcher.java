@@ -1,21 +1,15 @@
 package local.andregg.lab_2;
 
-import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
-
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import com.rometools.utils.Strings;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class FeedFetcher {
     private int feedLimit;
@@ -72,10 +66,9 @@ public class FeedFetcher {
 
                 for (int i = 0; i < numFeeds; i++) {
                     entry = feeds.getEntries().get(i);
-                    Log.d("app1", Integer.toString(i));
                     String description;
                     if(entry.getDescription() != null) {
-                        if (entry.getDescription().getValue().length() > 100) { //Make sure the description isnt to long
+                        if (entry.getDescription().getValue().length() > 100) { //Make sure the description isn't to long
                             description = entry.getDescription().getValue().substring(0, 100) + "...";
                         }else{
                             description = entry.getDescription().getValue();

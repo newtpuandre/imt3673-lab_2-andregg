@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         int Limit = prefs.getInt("Limit", -1);
         String url = prefs.getString("URL", "");
+        int UpdateFreq = prefs.getInt("UpdateFreq", -1);
 
         //Variables
         final Button btnSettings = findViewById(R.id.settings_button);
@@ -41,7 +43,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-
+        //Start service
+        Intent FetchIntent = new Intent(this, FetchNewsIntentService.class);
+        FetchIntent.setAction("local.andregg.lab_2 test");
+        startService(FetchIntent);
 
         //Settings button logic
         btnSettings.setOnClickListener(v -> {

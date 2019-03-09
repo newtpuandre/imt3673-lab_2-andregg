@@ -44,9 +44,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return mData.size();
     }
 
-    public void clear(MainActivity ref){
+    public void clear(){ //Clears the current data set within this class.
         mData.clear();
-        ref.updateRecyclerView();
     }
 
     public void setData(MainActivity ref, List<NewsItem> data) {

@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString() != "") {
+                if (s.toString() != "") { //TODO Move to a function.
                     //Use the filtered version
                     ArrayList<NewsItem> temp = new ArrayList<>();
                     for(int i = 0; i < data.size(); i++) {

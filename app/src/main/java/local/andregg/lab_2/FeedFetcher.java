@@ -79,7 +79,7 @@ public class FeedFetcher {
 
 
                     NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
-                    data.add(newNewsItem);
+                    data.add(newNewsItem); //TODO: Add to db
                 }
                 ref.updateRecyclerView(); //Update recyclerView on UI Thread
         }).start();

@@ -2,6 +2,7 @@ package local.andregg.lab_2;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -41,6 +42,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         final ArrayList<NewsItem> data = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
+
+        //Initialize SQLite DB
+        NewsStorage dbHelper = new NewsStorage(getApplicationContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        //NewsItem temp = new NewsItem("test1","test2","test3");
+        //dbHelper.insertItem(db, temp);
+
+        //dbHelper.getItems(db);
 
         fetcher.Fetch(url, data, this);
 

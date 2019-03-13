@@ -8,10 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-import com.rometools.rome.feed.atom.Feed;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class NewsStorage extends SQLiteOpenHelper {
 
@@ -58,11 +55,13 @@ public class NewsStorage extends SQLiteOpenHelper {
                 null,                   // don't filter by row groups
                 sortOrder               // The sort order
         );
-
+        NewsItem temp;
         while(cursor.moveToNext()) {
-            long itemId = cursor.getLong(
-                    cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry._ID));
-            Log.d("app1", String.valueOf(itemId));
+            String title = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE));
+            String description = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION));
+            String url = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_URL));
+            temp = new NewsItem(url, title, description);
+            data.add(temp);
         }
         cursor.close();
         return data;
@@ -77,6 +76,7 @@ public class NewsStorage extends SQLiteOpenHelper {
 
         // Insert the new row, returning the primary key value of the new row
         long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
+        db.insert
         Log.d("app1", String.valueOf(newRowId));
     }
 

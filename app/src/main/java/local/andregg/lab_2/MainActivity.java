@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +48,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         NewsStorage dbHelper = new NewsStorage(getApplicationContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        //NewsItem temp = new NewsItem("test1","test2","test3");
-        //dbHelper.insertItem(db, temp);
+        NewsItem tempnews = new NewsItem("link", "title", "desc");
+        dbHelper.insertItem(db, tempnews);
 
-        //dbHelper.getItems(db);
+        //Get newsItems from sqlite db
+        ArrayList<NewsItem> tempdata = dbHelper.getItems(db);
+        for (int i = 0; i < tempdata.size(); i++) {
+            data.add(tempdata.get(i));
+        }
+         dbHelper.getItems(db);
+        updateRecyclerView();
 
-        fetcher.Fetch(url, data, this);
+        //fetcher.Fetch(url, data, this);
 
         //Set up the RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerview);

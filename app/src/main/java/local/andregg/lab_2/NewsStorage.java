@@ -76,7 +76,6 @@ public class NewsStorage extends SQLiteOpenHelper {
 
         // Insert the new row, returning the primary key value of the new row
         long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
-        db.insert
         Log.d("app1", String.valueOf(newRowId));
     }
 

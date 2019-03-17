@@ -1,5 +1,7 @@
 package local.andregg.lab_2;
 
+import android.database.sqlite.SQLiteDatabase;
+
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
@@ -48,10 +50,13 @@ public class FeedFetcher {
         return feed;
     }
 
-    public void Fetch(String url, ArrayList<NewsItem> data, MainActivity ref) {
+    public void Fetch(String url, NewsStorage dbHelper) {
         if (url == "") { //No reason to fetch anything if url is empty
             return;
         }
+
+        //Initialize SQLite DB
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         new Thread(() -> { //Start fetching in a new thread
                 final SyndFeed feeds = RunFetch(url);
@@ -79,9 +84,11 @@ public class FeedFetcher {
 
 
                     NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
-                    data.add(newNewsItem); //TODO: Add to db
+                    dbHelper.insertItem(db, newNewsItem);
+                    //data.add(newNewsItem); //TODO: Add to db
                 }
-                ref.updateRecyclerView(); //Update recyclerView on UI Thread
+
+                //ref.updateRecyclerView(); //Update recyclerView on UI Thread
         }).start();
     }
 

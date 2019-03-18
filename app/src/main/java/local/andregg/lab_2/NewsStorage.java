@@ -64,19 +64,30 @@ public class NewsStorage extends SQLiteOpenHelper {
             data.add(temp);
         }
         cursor.close();
+        Log.d("app1", "Total number of items: " + data.size());
         return data;
     }
 
-    public void insertItem(SQLiteDatabase db, NewsItem item) {
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, item.returnHeader());
-        values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION, item.returnDescription());
-        values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_URL, item.returnLink());
+    public boolean checkForItem(SQLiteDatabase db, String title, String description) {
 
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
-        Log.d("app1", String.valueOf(newRowId));
+        String query = "SELECT * FROM news WHERE title='" + title + "' OR description='" + description + "'";
+        Cursor cur = db.rawQuery(query, null);
+        return (cur.moveToNext()); //Data is not null
+    }
+
+    public void insertItem(SQLiteDatabase db, NewsItem item) {
+        //Check if content already exists.
+        if(!checkForItem(db, item.returnHeader(), item.returnDescription())){
+            // Create a new map of values, where column names are the keys
+            ContentValues values = new ContentValues();
+            values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, item.returnHeader());
+            values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION, item.returnDescription());
+            values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_URL, item.returnLink());
+
+            // Insert the new row, returning the primary key value of the new row
+            long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
+            Log.d("app1", String.valueOf(newRowId) + " " + item.returnHeader());
+        }
     }
 
     public static final class FeedReaderContract {

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,20 +17,25 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ItemClickListener{
 
     RecyclerViewAdapter adapter;
+    RecyclerView recyclerView;
+    LinearLayoutManager mLayoutManager;
+
     public static final String PREFS_NAME = "MyNewsReader";
     public static int Limit;
     public static String url;
     public static int UpdateFreq;
     private static NewsStorage dbHelper;
+    ArrayList<NewsItem> data;
+    ArrayList<NewsItem> tempData;
+    private int lastLoadedID = 0;
+
+    boolean isLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,43 +47,74 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         //Shared preferences
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        Limit = prefs.getInt("Limit", -1);
         url = prefs.getString("URL", "");
         UpdateFreq = prefs.getInt("UpdateFreq", -1);
 
         //Variables
         final Button btnSettings = findViewById(R.id.settings_button);
         final EditText filterTxt = findViewById(R.id.filter_txt);
-        //FeedFetcher fetcher = new FeedFetcher(Limit);
 
-        final ArrayList<NewsItem> data = new ArrayList<>();
+        data = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
 
         //Initialize SQLite DB
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-
-        //fetcher.Fetch(url,dbHelper);
-
-        //Get newsItems from sqlite db
-        ArrayList<NewsItem> tempdata = dbHelper.getItems(db);
-        for (int i = 0; i < tempdata.size(); i++) {
-            data.add(tempdata.get(i));
-        }
-         dbHelper.getItems(db);
-        updateRecyclerView();
-
-
-        //Set up the RecyclerView
-        RecyclerView recyclerView = findViewById(R.id.recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
         //Start service
         Intent FetchIntent = new Intent(MainActivity.this, FetchNewsIntentService.class);
-        FetchIntent.setAction("local.andregg.lab_2 NewsFetch"); //TODO edit this string.
         startService(FetchIntent);
+
+        //Calculate limits
+        calculateLimit(prefs.getInt("Limit", -1));
+
+        //Get newsItems from sqlite db
+        tempData = dbHelper.getItems(db);
+        if(tempData.size() != 0) {
+            if(tempData.size() > Limit) {
+
+                for(int i = lastLoadedID; i < lastLoadedID + Limit; i++) {
+                    data.add(tempData.get(lastLoadedID++));
+                }
+
+            } else {
+                data.addAll(tempData);
+            }
+
+        }
+
+
+
+        updateRecyclerView();
+
+        //Set up the RecyclerView
+        mLayoutManager = new LinearLayoutManager(this);
+        recyclerView = findViewById(R.id.recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(mLayoutManager);
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+
+                if (!isLoading) {
+                    if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == data.size() - 1) {
+                        //bottom of list!
+                        loadMore();
+                        isLoading = true;
+                    }
+                }
+            }
+        });
 
         //Settings button logic
         btnSettings.setOnClickListener(v -> {
@@ -116,12 +153,32 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     }
 
+    private void loadMore() {
+        Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            int scrollPosition = data.size();
+            int currentSize = scrollPosition;
+            int nextLimit = currentSize + Limit;
+
+            data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
+            currentSize++;
+
+
+            adapter.notifyDataSetChanged();
+            isLoading = false;
+        }, 500);
+
+
+    }
+
+
     @Override
     public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
         Intent I = new Intent(MainActivity.this, ViewContentActivity.class);
         I.putExtra("URL", adapter.getItem(position).returnLink());
         startActivity(I);
     }
+
 
     public void updateRecyclerView(){
        runOnUiThread(() -> adapter.notifyDataSetChanged());
@@ -132,9 +189,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         return dbHelper;
     }
 
+    private void calculateLimit(int m_limit) {
+        switch(m_limit){
+            case 0: this.Limit = 10; break;
+            case 1: this.Limit = 20; break;
+            case 2: this.Limit = 50; break;
+            case 3: this.Limit = 100; break;
+            default: this.Limit = -1; break;
+        }
+
+        Log.d("app1", String.valueOf(this.Limit));
+    }
+
     public static class FetchNewsIntentService extends Service {
 
         Handler mHandler;
+        private int updatefreq;
 
         @Override
         public void onCreate() {
@@ -144,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
             mHandler = new Handler();
+            calculateTime();
             FetchNews();
             return START_STICKY;
         }
@@ -160,9 +231,21 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             return null;
         }
 
+        private void calculateTime(){
+            int m_updatefreq = 0;
+            switch(m_updatefreq){
+                case 0: this.updatefreq = 600000; break; //10 min
+                case 1: this.updatefreq = 3600000; break; // 60 min
+                case 2: this.updatefreq = 86400000; break; // 24 hours
+                default: this.updatefreq = -1; break;
+            }
+
+            Log.d("app1", String.valueOf(this.updatefreq));
+        }
+
         private void FetchNews(){
             try {
-                FeedFetcher fetcher = new FeedFetcher(Limit);
+                FeedFetcher fetcher = new FeedFetcher();
                 fetcher.Fetch(MainActivity.url, dbHelper);
                 Log.d("NewsFetch", "fetching news");
             } catch (Exception e) {
@@ -173,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         }
 
         private void scheduleNext() {
-            mHandler.postDelayed(() -> FetchNews(), 1000);
+            mHandler.postDelayed(() -> FetchNews(), this.updatefreq);
         }
 
     }

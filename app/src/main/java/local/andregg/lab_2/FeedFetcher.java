@@ -1,6 +1,7 @@
 package local.andregg.lab_2;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -14,17 +15,8 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class FeedFetcher {
-    private int feedLimit;
 
-    FeedFetcher(int limit){
-        switch(limit){
-            case 0: this.feedLimit = 10; break;
-            case 1: this.feedLimit = 25; break;
-            case 2: this.feedLimit = 50; break;
-            case 3: this.feedLimit = 100; break;
-            default: this.feedLimit = -1; break;
-        }
-    }
+    FeedFetcher(){ }
 
     protected SyndFeed RunFetch(String... url) {
         URL feedUrl = null;
@@ -60,16 +52,9 @@ public class FeedFetcher {
 
         new Thread(() -> { //Start fetching in a new thread
                 final SyndFeed feeds = RunFetch(url);
-                int numFeeds;
                 SyndEntry entry;
 
-                if (feeds.getEntries().size() <= feedLimit) {
-                    numFeeds = feeds.getEntries().size();
-                } else {
-                    numFeeds = feedLimit;
-                }
-
-                for (int i = 0; i < numFeeds; i++) {
+                for (int i = 0; i < feeds.getEntries().size(); i++) {
                     entry = feeds.getEntries().get(i);
                     String description;
                     if(entry.getDescription() != null) {
@@ -85,7 +70,6 @@ public class FeedFetcher {
 
                     NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
                     dbHelper.insertItem(db, newNewsItem);
-                    //data.add(newNewsItem); //TODO: Add to db
                 }
 
                 //ref.updateRecyclerView(); //Update recyclerView on UI Thread

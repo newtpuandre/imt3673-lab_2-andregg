@@ -64,7 +64,7 @@ public class NewsStorage extends SQLiteOpenHelper {
             String description = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION));
             String url = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_URL));
             temp = new NewsItem(0,url, title, description);
-            Log.d("app1", title + " " +  description + " "+ url);
+            Log.d("app1", query);
         }
 
         return temp;

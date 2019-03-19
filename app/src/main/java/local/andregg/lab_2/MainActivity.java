@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 int lastID = (int) NewsStorage.lastAddedID;
                 int queueNumber = NewsStorage.numberInQueue;
 
-               while (queueNumber != 0) { //TODO fix this stupid function
+               while (queueNumber >= 0) { //TODO fix this stupid function
                    Log.d("app1", "Queuenumber: " + queueNumber + " lastID" + lastID);
                    queueNumber--;
                     data.add(dbHelper.getSingleItem(db, lastID--));

@@ -154,26 +154,36 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     private void loadMore() {
         Handler handler = new Handler();
-        handler.postDelayed(() -> {
+        handler.post(() -> {
             int scrollPosition = data.size();
-            int currentSize = scrollPosition;
-            int nextLimit = currentSize + Limit;
+            int dataCount = dbHelper.countData(db);
 
             //data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
             Log.d("app1", "scoll:" + scrollPosition + " datasize:" + dbHelper.countData(db));
-            if ( NewsStorage.numerInQueue != 0) {
+            if ( NewsStorage.numberInQueue != 0) {
+                int lastID = (int) NewsStorage.lastAddedID;
+                int queueNumber = NewsStorage.numberInQueue;
 
-                for (int i = (int) NewsStorage.lastAddedID; i == (int) NewsStorage.lastAddedID - NewsStorage.numerInQueue; i--) {
-                    data.add(dbHelper.getSingleItem(db, i));
-                    currentSize++;
+               while (queueNumber != 0) { //TODO fix this stupid function
+                    data.add(dbHelper.getSingleItem(db, lastID--));
+                    queueNumber--;
                 }
 
             } else { //Nothing in queue. Load next x amount of items.
 
-                if (dbHelper.countData(db) >= scrollPosition) {
-                    for(int i = scrollPosition; i < scrollPosition + Limit; i++) {
-                        data.add(dbHelper.getSingleItem(db, i));
-                        currentSize++;
+                if (dataCount > scrollPosition) {
+                    int nextLimit;
+                    if (scrollPosition + Limit < dataCount){
+                        nextLimit = scrollPosition + Limit;
+                    } else {
+                        nextLimit = dataCount;
+                    }
+                    for(int i = scrollPosition; i < nextLimit; i++) {
+
+                        NewsItem dbGet = dbHelper.getSingleItem(db, i);
+                        if(dbGet.returnHeader() != null || dbGet.returnDescription() != null) {
+                            data.add(dbGet);
+                        }
                     }
                 } else {
                     String message = "There are currently no more items to fetch. Check back later";
@@ -184,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
             adapter.notifyDataSetChanged();
             isLoading = false;
-        }, 500);
+        });
 
 
 

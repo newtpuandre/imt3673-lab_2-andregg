@@ -17,7 +17,7 @@ public class NewsStorage extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "andregg_lab_2.db";
 
     public static long lastAddedID = 0;
-    public static int numerInQueue = 0;
+    public static int numberInQueue = 0;
 
     public NewsStorage(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -55,7 +55,7 @@ public class NewsStorage extends SQLiteOpenHelper {
     }
 
     public NewsItem getSingleItem(SQLiteDatabase db, int id) {
-        NewsItem temp = new NewsItem(0,"null", "null", "null");
+        NewsItem temp = new NewsItem((int) lastAddedID + 1,"null", "null", "null");
         String query = "SELECT * FROM news WHERE _id='" + (id + 1)  + "'";
         Log.d("app1", query);
         Cursor cursor = db.rawQuery(query, null);
@@ -82,7 +82,7 @@ public class NewsStorage extends SQLiteOpenHelper {
         if(!checkForItem(db, item.returnHeader(), item.returnDescription())){
             // Create a new map of values, where column names are the keys
             ContentValues values = new ContentValues();
-            values.put(FeedReaderContract.FeedEntry._ID, lastAddedID + 1);
+            values.put(FeedReaderContract.FeedEntry._ID, countData(db) + 1);
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, item.returnHeader());
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION, item.returnDescription());
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_URL, item.returnLink());
@@ -90,7 +90,7 @@ public class NewsStorage extends SQLiteOpenHelper {
             // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
             lastAddedID = newRowId;
-            numerInQueue++;
+            numberInQueue++;
             Log.d("app1", String.valueOf(newRowId) + " " + item.returnHeader());
         }
     }

@@ -16,6 +16,9 @@ public class NewsStorage extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "andregg_lab_2.db";
 
+    public static long lastAddedID = 0;
+    public static int numerInQueue = 0;
+
     public NewsStorage(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -32,40 +35,39 @@ public class NewsStorage extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public ArrayList<NewsItem> getItems(SQLiteDatabase db){
+    public ArrayList<NewsItem> getItems(SQLiteDatabase db, int limit){
         ArrayList<NewsItem> data = new ArrayList<>();
-
-        String[] projection = {
-                BaseColumns._ID,
-                FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE,
-                FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION,
-                FeedReaderContract.FeedEntry.COLUMN_NAME_URL
-        };
-
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                FeedReaderContract.FeedEntry._ID + " DESC";
-
-        Cursor cursor = db.query(
-                FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
-                projection,             // The array of columns to return (pass null to get all)
-                null,              // The columns for the WHERE clause
-                null,          // The values for the WHERE clause
-                null,                   // don't group the rows
-                null,                   // don't filter by row groups
-                sortOrder               // The sort order
-        );
         NewsItem temp;
+
+        String query = "SELECT * FROM news" + " ORDER BY '" + FeedReaderContract.FeedEntry._ID +"' DESC" + " LIMIT " + limit ;
+        Cursor cursor = db.rawQuery(query, null);
         while(cursor.moveToNext()) {
+            int number = cursor.getInt(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry._ID));
             String title = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE));
             String description = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION));
             String url = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_URL));
-            temp = new NewsItem(url, title, description);
+            temp = new NewsItem(number, url, title, description);
             data.add(temp);
         }
         cursor.close();
         Log.d("app1", "Total number of items: " + data.size());
         return data;
+    }
+
+    public NewsItem getSingleItem(SQLiteDatabase db, int id) {
+        NewsItem temp = new NewsItem(0,"null", "null", "null");
+        String query = "SELECT * FROM news WHERE _id='" + (id + 1)  + "'";
+        Log.d("app1", query);
+        Cursor cursor = db.rawQuery(query, null);
+        while(cursor.moveToNext()) {
+            String title = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE));
+            String description = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION));
+            String url = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_URL));
+            temp = new NewsItem(0,url, title, description);
+            Log.d("app1", title + " " +  description + " "+ url);
+        }
+
+        return temp;
     }
 
     public boolean checkForItem(SQLiteDatabase db, String title, String description) {
@@ -80,14 +82,27 @@ public class NewsStorage extends SQLiteOpenHelper {
         if(!checkForItem(db, item.returnHeader(), item.returnDescription())){
             // Create a new map of values, where column names are the keys
             ContentValues values = new ContentValues();
+            values.put(FeedReaderContract.FeedEntry._ID, lastAddedID + 1);
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, item.returnHeader());
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_DESCRIPTION, item.returnDescription());
             values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_URL, item.returnLink());
 
             // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
+            lastAddedID = newRowId;
+            numerInQueue++;
             Log.d("app1", String.valueOf(newRowId) + " " + item.returnHeader());
         }
+    }
+
+    public int countData(SQLiteDatabase db){
+        int count;
+
+        String query = "SELECT * FROM news";
+        Cursor cur = db.rawQuery(query, null);
+        count = cur.getCount();
+
+        return count;
     }
 
     public static final class FeedReaderContract {

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     RecyclerViewAdapter adapter;
     RecyclerView recyclerView;
     LinearLayoutManager mLayoutManager;
+    SQLiteDatabase db;
 
     public static final String PREFS_NAME = "MyNewsReader";
     public static int Limit;
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         adapter.setClickListener(this);
 
         //Initialize SQLite DB
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db = dbHelper.getWritableDatabase();
 
         //Start service
         Intent FetchIntent = new Intent(MainActivity.this, FetchNewsIntentService.class);
@@ -69,18 +71,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         calculateLimit(prefs.getInt("Limit", -1));
 
         //Get newsItems from sqlite db
-        tempData = dbHelper.getItems(db);
-        if(tempData.size() != 0) {
-            if(tempData.size() > Limit) {
+        tempData = dbHelper.getItems(db, Limit);
 
-                for(int i = lastLoadedID; i < lastLoadedID + Limit; i++) {
-                    data.add(tempData.get(lastLoadedID++));
-                }
-
-            } else {
-                data.addAll(tempData);
-            }
-
+        if(tempData.size() != 0) { //Check if there is data in SQLite db
+            data.addAll(tempData);
+            lastLoadedID = data.size();
+        } else {
+            String message = "Nothing to show. Go to settings and add a RSS/ATOM 2.0 feed.";
+            Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+            toast.show();
         }
 
 
@@ -160,13 +159,34 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             int currentSize = scrollPosition;
             int nextLimit = currentSize + Limit;
 
-            data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
-            currentSize++;
+            //data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
+            Log.d("app1", "scoll:" + scrollPosition + " datasize:" + dbHelper.countData(db));
+            if ( NewsStorage.numerInQueue != 0) {
 
+                for (int i = (int) NewsStorage.lastAddedID; i == (int) NewsStorage.lastAddedID - NewsStorage.numerInQueue; i--) {
+                    data.add(dbHelper.getSingleItem(db, i));
+                    currentSize++;
+                }
+
+            } else { //Nothing in queue. Load next x amount of items.
+
+                if (dbHelper.countData(db) >= scrollPosition) {
+                    for(int i = scrollPosition; i < scrollPosition + Limit; i++) {
+                        data.add(dbHelper.getSingleItem(db, i));
+                        currentSize++;
+                    }
+                } else {
+                    String message = "There are currently no more items to fetch. Check back later";
+                    Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                    toast.show();
+                }
+            }
 
             adapter.notifyDataSetChanged();
             isLoading = false;
         }, 500);
+
+
 
 
     }

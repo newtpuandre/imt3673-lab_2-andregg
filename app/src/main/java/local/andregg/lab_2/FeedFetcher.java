@@ -68,7 +68,7 @@ public class FeedFetcher {
                     }
 
 
-                    NewsItem newNewsItem = new NewsItem(entry.getLink(), entry.getTitle(), description);
+                    NewsItem newNewsItem = new NewsItem(0 ,entry.getLink(), entry.getTitle(), description);
                     dbHelper.insertItem(db, newNewsItem);
                 }
 

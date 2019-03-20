@@ -33,9 +33,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public static String url;
     public static int UpdateFreq;
     private static NewsStorage dbHelper;
+    ArrayList<ArrayList<NewsItem>> fifoList;
     ArrayList<NewsItem> data;
     ArrayList<NewsItem> tempData;
-    private int lastLoadedID = 0;
 
     boolean isLoading = false;
 
@@ -71,11 +71,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         calculateLimit(prefs.getInt("Limit", -1));
 
         //Get newsItems from sqlite db
-        tempData = dbHelper.getItems(db, Limit);
+        fifoList = splitData(db, Limit);
 
-        if(tempData.size() != 0) { //Check if there is data in SQLite db
+        if(fifoList.size() != 0) { //Check if there is data in the fifo list
+            tempData = fifoList.get(0);
+            fifoList.remove(0);
             data.addAll(tempData);
-            lastLoadedID = data.size();
         } else {
             String message = "Nothing to show. Go to settings and add a RSS/ATOM 2.0 feed.";
             Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
@@ -157,40 +158,24 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         handler.post(() -> {
             int scrollPosition = data.size();
             int dataCount = dbHelper.countData(db);
+            int queueNumber = NewsStorage.numberInQueue;
+            int lastID = (int) NewsStorage.lastAddedID;
 
             //data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
             Log.d("app1", "scoll:" + scrollPosition + " datasize:" + dbHelper.countData(db));
-            if ( NewsStorage.numberInQueue != 0) {
-                int lastID = (int) NewsStorage.lastAddedID;
-                int queueNumber = NewsStorage.numberInQueue;
 
-               while (queueNumber >= 0) { //TODO fix this stupid function
-                   Log.d("app1", "Queuenumber: " + queueNumber + " lastID" + lastID);
-                   queueNumber--;
-                    data.add(dbHelper.getSingleItem(db, lastID--));
+            if ( fifoList.size() != 0) {
+                ArrayList<NewsItem> newData = fifoList.get(0);
+                fifoList.remove(0);
+
+                for (int i = 0; i < newData.size(); i++) {
+                    data.add(newData.get(i));
                 }
 
             } else { //Nothing in queue. Load next x amount of items.
 
-                if (dataCount > scrollPosition) {
-                    int nextLimit;
-                    if (scrollPosition + Limit < dataCount){
-                        nextLimit = scrollPosition + Limit;
-                    } else {
-                        nextLimit = dataCount;
-                    }
-                    for(int i = scrollPosition; i < nextLimit; i++) {
-
-                        NewsItem dbGet = dbHelper.getSingleItem(db, i);
-                        if(dbGet.returnHeader() != null || dbGet.returnDescription() != null) {
-                            data.add(dbGet);
-                        }
-                    }
-                } else {
-                    String message = "There are currently no more items to fetch. Check back later";
-                    Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                    toast.show();
-                }
+                String message = "There are currently no more items to fetch. Check back later";
+                Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
             }
 
             adapter.notifyDataSetChanged();
@@ -216,8 +201,27 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     }
 
-    public NewsStorage returnDbHelper(){
-        return dbHelper;
+    public ArrayList<ArrayList<NewsItem>> splitData(SQLiteDatabase db, int limit){
+        ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>();
+
+        ArrayList<NewsItem> dbData = dbHelper.getItems(db);
+        ArrayList<NewsItem> temp;
+
+        while(dbData.size() > 0){
+            int index = 0;
+            temp = new ArrayList<>();
+
+            while (index != limit && dbData.size() > 0) {
+                temp.add(dbData.get(0));
+                dbData.remove(0);
+                index++;
+            }
+
+            retList.add(temp);
+        }
+
+
+        return retList;
     }
 
     private void calculateLimit(int m_limit) {
@@ -229,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             default: this.Limit = -1; break;
         }
 
-        Log.d("app1", String.valueOf(this.Limit));
     }
 
     public static class FetchNewsIntentService extends Service {

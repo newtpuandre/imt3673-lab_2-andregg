@@ -35,11 +35,11 @@ public class NewsStorage extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public ArrayList<NewsItem> getItems(SQLiteDatabase db, int limit){
+    public ArrayList<NewsItem> getItems(SQLiteDatabase db){
         ArrayList<NewsItem> data = new ArrayList<>();
         NewsItem temp;
 
-        String query = "SELECT * FROM news" + " ORDER BY '" + FeedReaderContract.FeedEntry._ID +"' DESC" + " LIMIT " + limit ;
+        String query = "SELECT * FROM news" + " ORDER BY '" + FeedReaderContract.FeedEntry._ID +"' DESC";
         Cursor cursor = db.rawQuery(query, null);
         while(cursor.moveToNext()) {
             int number = cursor.getInt(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry._ID));
@@ -55,7 +55,7 @@ public class NewsStorage extends SQLiteOpenHelper {
     }
 
     public NewsItem getSingleItem(SQLiteDatabase db, int id) {
-        NewsItem temp = new NewsItem((int) lastAddedID + 1,"null", "null", "null");
+        NewsItem temp = new NewsItem((int) lastAddedID,"null", "null", "null");
         String query = "SELECT * FROM news WHERE _id='" + (id + 1)  + "'";
         Log.d("app1", query);
         Cursor cursor = db.rawQuery(query, null);
@@ -72,8 +72,8 @@ public class NewsStorage extends SQLiteOpenHelper {
 
     public boolean checkForItem(SQLiteDatabase db, String title, String description) {
 
-        String query = "SELECT * FROM news WHERE title='" + title + "' OR description='" + description + "'";
-        Cursor cur = db.rawQuery(query, null);
+        String query = "SELECT * FROM news WHERE title=? OR description=?";
+        Cursor cur = db.rawQuery(query, new String[] {title, description});
         return (cur.moveToNext()); //Data is not null
     }
 

@@ -53,6 +53,8 @@ public class FeedFetcher {
         new Thread(() -> { //Start fetching in a new thread
                 final SyndFeed feeds = RunFetch(url);
                 SyndEntry entry;
+                ArrayList<NewsItem> fifoTemp = new ArrayList<>();
+                ArrayList<NewsItem> temp = new ArrayList<>();
 
                 for (int i = 0; i < feeds.getEntries().size(); i++) {
                     entry = feeds.getEntries().get(i);
@@ -69,10 +71,24 @@ public class FeedFetcher {
 
 
                     NewsItem newNewsItem = new NewsItem((int) NewsStorage.lastAddedID + 1 ,entry.getLink(), entry.getTitle(), description);
-                    dbHelper.insertItem(db, newNewsItem);
+                    if (dbHelper.insertItem(db, newNewsItem)){
+                        temp.add(newNewsItem);
+                    }
                 }
 
-                //ref.updateRecyclerView(); //Update recyclerView on UI Thread
+                while ( temp.size() != 0) {
+                    int fifoIndex = 0;
+                    int index = 0;
+
+                    while (index != MainActivity.Limit && temp.size() > 0) {
+                        fifoTemp.add(temp.get(0));
+                        temp.remove(0);
+                        index++;
+                    }
+
+                    MainActivity.fifoList.add(fifoIndex++, fifoTemp);
+                }
+
         }).start();
     }
 

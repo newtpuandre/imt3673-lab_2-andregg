@@ -32,8 +32,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public static int Limit;
     public static String url;
     public static int UpdateFreq;
+    boolean FilterSearch = false;
     private static NewsStorage dbHelper;
-    ArrayList<ArrayList<NewsItem>> fifoList;
+    public static ArrayList<ArrayList<NewsItem>> fifoList;
     ArrayList<NewsItem> data;
     ArrayList<NewsItem> tempData;
 
@@ -135,12 +136,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                         }
                     }
                     adapter.setData(MainActivity.this, temp);
+                    FilterSearch = true;
                 } else {
                     //Revert data back to original
                     adapter.setData(MainActivity.this, data);
+                    FilterSearch = false;
                 }
 
-                updateRecyclerView();
+                adapter.notifyDataSetChanged();
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
@@ -154,15 +157,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     }
 
     private void loadMore() {
+        if( FilterSearch ){
+            Log.d("app1", "currently searching");
+            return;
+        }
+
         Handler handler = new Handler();
         handler.post(() -> {
             int scrollPosition = data.size();
-            int dataCount = dbHelper.countData(db);
-            int queueNumber = NewsStorage.numberInQueue;
-            int lastID = (int) NewsStorage.lastAddedID;
 
             //data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
             Log.d("app1", "scoll:" + scrollPosition + " datasize:" + dbHelper.countData(db));
+            Log.d("app1", "Fifolist size" + fifoList.size());
 
             if ( fifoList.size() != 0) {
                 ArrayList<NewsItem> newData = fifoList.get(0);
@@ -172,11 +178,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                     data.add(newData.get(i));
                 }
 
-            } else { //Nothing in queue. Load next x amount of items.
+            }
 
+            if (scrollPosition == dbHelper.countData(db)){
                 String message = "There are currently no more items to fetch. Check back later";
                 Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                toast.show();
             }
+
 
             adapter.notifyDataSetChanged();
             isLoading = false;

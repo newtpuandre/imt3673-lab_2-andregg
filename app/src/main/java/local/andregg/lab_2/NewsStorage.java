@@ -39,7 +39,7 @@ public class NewsStorage extends SQLiteOpenHelper {
         ArrayList<NewsItem> data = new ArrayList<>();
         NewsItem temp;
 
-        String query = "SELECT * FROM news" + " ORDER BY '" + FeedReaderContract.FeedEntry._ID +"' DESC";
+        String query = "SELECT * FROM news ORDER BY _id DESC";
         Cursor cursor = db.rawQuery(query, null);
         while(cursor.moveToNext()) {
             int number = cursor.getInt(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry._ID));
@@ -50,14 +50,12 @@ public class NewsStorage extends SQLiteOpenHelper {
             data.add(temp);
         }
         cursor.close();
-        Log.d("app1", "Total number of items: " + data.size());
         return data;
     }
 
     public NewsItem getSingleItem(SQLiteDatabase db, int id) {
         NewsItem temp = new NewsItem((int) lastAddedID,"null", "null", "null");
         String query = "SELECT * FROM news WHERE _id='" + (id + 1)  + "'";
-        Log.d("app1", query);
         Cursor cursor = db.rawQuery(query, null);
         while(cursor.moveToNext()) {
             String title = cursor.getString(cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE));
@@ -77,7 +75,7 @@ public class NewsStorage extends SQLiteOpenHelper {
         return (cur.moveToNext()); //Data is not null
     }
 
-    public void insertItem(SQLiteDatabase db, NewsItem item) {
+    public boolean insertItem(SQLiteDatabase db, NewsItem item) {
         //Check if content already exists.
         if(!checkForItem(db, item.returnHeader(), item.returnDescription())){
             // Create a new map of values, where column names are the keys
@@ -92,7 +90,9 @@ public class NewsStorage extends SQLiteOpenHelper {
             lastAddedID = newRowId;
             numberInQueue++;
             Log.d("app1", String.valueOf(newRowId) + " " + item.returnHeader());
+            return true;
         }
+        return false;
     }
 
     public int countData(SQLiteDatabase db){

@@ -1,7 +1,7 @@
 # imt3673-lab_2-andregg
 
 ## Notes:
-* I used a library called (Rome)[https://github.com/rometools/rome] to parse the RSS and ATOM feeds provided by the user.
+* I used a library called [Rome](https://github.com/rometools/rome) to parse the RSS and ATOM feeds provided by the user.
 * The fetching is done in a service, however if the app is terminated (Closed shut by the OS or via the 'task manager') the fetching will stop. The fetching works correctly if the app is in the background.
 * Feed items are stored in a SQLite database, making it possible to browse already fetched items offline
 * My solution to endless scrolling might bring some problems if the SQLite database become very large, see the 'improvements' section for more information.

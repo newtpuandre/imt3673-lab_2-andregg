@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,13 +29,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     LinearLayoutManager mLayoutManager;
     SQLiteDatabase db;
 
+
     public static final String PREFS_NAME = "MyNewsReader";
     public static int Limit;
     public static String url;
     public static int UpdateFreq;
-    boolean FilterSearch = false;
     private static NewsStorage dbHelper;
     public static ArrayList<ArrayList<NewsItem>> fifoList;
+    private ArrayList<NewsItem> tempTest;
     ArrayList<NewsItem> data;
     ArrayList<NewsItem> tempData;
 
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         final Button btnSettings = findViewById(R.id.settings_button);
         final EditText filterTxt = findViewById(R.id.filter_txt);
 
+        tempTest = new ArrayList<>();
         data = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
@@ -117,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             }
         });
 
+
         //Settings button logic
         btnSettings.setOnClickListener(v -> {
             Intent I = new Intent(MainActivity.this, SettingsActivity.class);
@@ -126,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString() != "") { //TODO Move to a function.
+                if (count != 0) { //TODO Move to a function.
                     //Use the filtered version
                     ArrayList<NewsItem> temp = new ArrayList<>();
                     for(int i = 0; i < data.size(); i++) {
@@ -135,39 +139,31 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                             temp.add(data.get(i));
                         }
                     }
+                    //adapter.clear();
                     adapter.setData(MainActivity.this, temp);
-                    FilterSearch = true;
                 } else {
                     //Revert data back to original
                     adapter.setData(MainActivity.this, data);
-                    FilterSearch = false;
-                }
 
+                }
                 adapter.notifyDataSetChanged();
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
-                 }
+            }
 
             @Override
             public void afterTextChanged(Editable s) {//Do nothing
-                 }
+            }
         });
 
     }
 
     private void loadMore() {
-        if( FilterSearch ){
-            Log.d("app1", "currently searching");
-            return;
-        }
 
         Handler handler = new Handler();
         handler.post(() -> {
             int scrollPosition = data.size();
-
-            //data.add(new NewsItem("lol", Integer.toString(currentSize), "lol"));
-            Log.d("app1", "scoll:" + scrollPosition + " datasize:" + dbHelper.countData(db));
             Log.d("app1", "Fifolist size" + fifoList.size());
 
             if ( fifoList.size() != 0) {
@@ -177,7 +173,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 for (int i = 0; i < newData.size(); i++) {
                     data.add(newData.get(i));
                 }
-
             }
 
             if (scrollPosition == dbHelper.countData(db)){

@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public static int UpdateFreq;
     private static NewsStorage dbHelper;
     public static ArrayList<ArrayList<NewsItem>> fifoList;
-    private ArrayList<NewsItem> tempTest;
+    boolean searching = false;
     ArrayList<NewsItem> data;
     ArrayList<NewsItem> tempData;
 
@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         final Button btnSettings = findViewById(R.id.settings_button);
         final EditText filterTxt = findViewById(R.id.filter_txt);
 
-        tempTest = new ArrayList<>();
         data = new ArrayList<>();
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
@@ -141,9 +140,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                     }
                     //adapter.clear();
                     adapter.setData(MainActivity.this, temp);
+                    searching = true;
                 } else {
                     //Revert data back to original
                     adapter.setData(MainActivity.this, data);
+                    searching = false;
 
                 }
                 adapter.notifyDataSetChanged();
@@ -161,6 +162,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     private void loadMore() {
 
+        if(searching) {
+            return;
+        }
         Handler handler = new Handler();
         handler.post(() -> {
             int scrollPosition = data.size();

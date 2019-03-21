@@ -4,9 +4,9 @@ package local.andregg.lab_2;
 /* Class for containing news information */
 public class NewsItem {
     private int number;
-    private String link;
-    private String header;
-    private String description;
+    private String link = "null";
+    private String header = "null";
+    private String description = "null";
 
     NewsItem(int m_number, String m_link, String m_header, String m_description){
         this.number = m_number;

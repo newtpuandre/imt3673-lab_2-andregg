@@ -2,12 +2,10 @@ package local.andregg.lab_2;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,11 +27,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     LinearLayoutManager mLayoutManager;
     SQLiteDatabase db;
 
-
-    public static final String PREFS_NAME = "MyNewsReader";
-    public static int Limit;
-    public static String url;
-    public static int UpdateFreq;
     private static NewsStorage dbHelper;
     public static ArrayList<ArrayList<NewsItem>> fifoList;
     boolean searching = false;
@@ -51,9 +44,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         dbHelper = new NewsStorage(getApplicationContext());
 
         //Shared preferences
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        url = prefs.getString("URL", "");
-        UpdateFreq = prefs.getInt("UpdateFreq", -1);
+        FeedPreferences.getPreferences(this);
 
         //Variables
         final Button btnSettings = findViewById(R.id.settings_button);
@@ -70,11 +61,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         Intent FetchIntent = new Intent(MainActivity.this, FetchNewsIntentService.class);
         startService(FetchIntent);
 
-        //Calculate limits
-        calculateLimit(prefs.getInt("Limit", -1));
-
         //Get newsItems from sqlite db
-        fifoList = splitData(db, Limit);
+        fifoList = splitData(db, FeedPreferences.Limit);
 
         if(fifoList.size() != 0) { //Check if there is data in the fifo list
             tempData = fifoList.get(0);
@@ -129,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterData(s.toString(),count);
+                filterData(data ,s.toString(),count);
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
@@ -176,14 +164,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     }
 
-    public void filterData(String s, int count){
+    public void filterData(ArrayList<NewsItem> m_data,String s, int count){
         if (count != 0) {
             //Use the filtered version
             ArrayList<NewsItem> temp = new ArrayList<>();
-            for(int i = 0; i < data.size(); i++) {
-                if(data.get(i).returnHeader().toLowerCase().contains(s.toLowerCase()) ||
-                        data.get(i).returnDescription().toLowerCase().contains(s.toLowerCase())) {
-                    temp.add(data.get(i));
+            for(int i = 0; i < m_data.size(); i++) {
+                if(m_data.get(i).returnHeader().toLowerCase().contains(s.toLowerCase()) ||
+                        m_data.get(i).returnDescription().toLowerCase().contains(s.toLowerCase())) {
+                    temp.add(m_data.get(i));
                 }
             }
             //adapter.clear();
@@ -191,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             searching = true;
         } else {
             //Revert data back to original
-            adapter.setData(MainActivity.this, data);
+            adapter.setData(MainActivity.this, m_data);
             searching = false;
 
         }
@@ -236,21 +224,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         return retList;
     }
 
-    private void calculateLimit(int m_limit) {
-        switch(m_limit){
-            case 0: this.Limit = 10; break;
-            case 1: this.Limit = 20; break;
-            case 2: this.Limit = 50; break;
-            case 3: this.Limit = 100; break;
-            default: this.Limit = -1; break;
-        }
-
-    }
-
     public static class FetchNewsIntentService extends Service {
 
         Handler mHandler;
-        private int updatefreq;
 
         @Override
         public void onCreate() {
@@ -260,7 +236,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
             mHandler = new Handler();
-            calculateTime();
             FetchNews();
             return START_STICKY;
         }
@@ -277,22 +252,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             return null;
         }
 
-        private void calculateTime(){
-            int m_updatefreq = 0;
-            switch(m_updatefreq){
-                case 0: this.updatefreq = 600000; break; //10 min
-                case 1: this.updatefreq = 3600000; break; // 60 min
-                case 2: this.updatefreq = 86400000; break; // 24 hours
-                default: this.updatefreq = -1; break;
-            }
-
-            Log.d("app1", String.valueOf(this.updatefreq));
-        }
 
         private void FetchNews(){
             try {
                 FeedFetcher fetcher = new FeedFetcher();
-                fetcher.Fetch(MainActivity.url, dbHelper);
+                fetcher.handleData(dbHelper);
                 Log.d("NewsFetch", "fetching news");
             } catch (Exception e) {
                 Log.e("Error", "In onStartCommand");
@@ -302,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         }
 
         private void scheduleNext() {
-            mHandler.postDelayed(() -> FetchNews(), this.updatefreq);
+            mHandler.postDelayed(() -> FetchNews(), FeedPreferences.updateFreq);
         }
 
     }

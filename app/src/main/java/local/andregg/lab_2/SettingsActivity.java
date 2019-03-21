@@ -60,6 +60,8 @@ public class SettingsActivity extends AppCompatActivity {
             editor.putInt("Limit", newsLimitSpinner.getSelectedItemPosition());
             editor.putInt("UpdateFreq", updateSpinner.getSelectedItemPosition());
             editor.apply();
+
+            FeedPreferences.getPreferences(this); //Update the Preference class
         });
     }
 }

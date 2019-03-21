@@ -10,9 +10,9 @@
 
 ## Checklist: 
 
-* [ ] The git repository URL is correctly provided, such that command works: git clone <url>
+* [X] The git repository URL is correctly provided, such that command works: git clone <url>
 
-* [ ] The code is well, logically organised and structured into appropriate classes. Everything should be in a single package.
+* [X] The code is well, logically organised and structured into appropriate classes. Everything should be in a single package.
 
 * [X] It is clear to the user what RSS feed formats are supported (RSS2.0 and/or Atom)
 

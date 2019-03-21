@@ -31,7 +31,7 @@
 
 * [X] The Filter EditText works as expected.
 
-* [ ] The app has JUnit Tests for testing the parsing, and the filtering functionality.
+* [X] The app has JUnit Tests for testing the parsing, and the filtering functionality.
 
 ## Improvements:
 * Right now the whole dataset is fetched from the SQLite db and stored in memory. An improvement is to only load X amount of items at a time instead.

@@ -1,17 +1,15 @@
 package local.andregg.lab_2;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Instrumented test, which will execute on an Android device.

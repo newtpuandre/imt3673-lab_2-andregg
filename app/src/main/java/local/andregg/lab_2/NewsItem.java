@@ -1,6 +1,5 @@
 package local.andregg.lab_2;
 
-
 /* Class for containing news information */
 public class NewsItem {
     private int number;

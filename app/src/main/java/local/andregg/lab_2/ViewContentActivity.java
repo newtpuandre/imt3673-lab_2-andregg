@@ -18,11 +18,13 @@ public class ViewContentActivity extends AppCompatActivity {
         //Variables
         final WebView webview = findViewById(R.id.web_view);
 
+        //Create a new WebViewClient
         webview.setWebViewClient(new WebViewClient());
 
         //Enable javascript
         webview.getSettings().setJavaScriptEnabled(true);
 
+        //Get the URL passed to this activity and load that website.
         Intent I = getIntent();
         webview.loadUrl(I.getStringExtra("URL"));
         

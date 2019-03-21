@@ -2,11 +2,14 @@ package local.andregg.lab_2;
 
 /* Class for containing news information */
 public class NewsItem {
+
+    //Variables needed for the representation of the news items
     private int number;
     private String link = "null";
     private String header = "null";
     private String description = "null";
 
+    //Constructor
     NewsItem(int m_number, String m_link, String m_header, String m_description){
         this.number = m_number;
         this.link = m_link;
@@ -14,6 +17,7 @@ public class NewsItem {
         this.description = m_description;
     }
 
+    //Getters
     public String returnLink(){
         return this.link;
     }

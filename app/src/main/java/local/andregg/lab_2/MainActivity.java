@@ -22,17 +22,24 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ItemClickListener{
 
-    RecyclerViewAdapter adapter;
-    RecyclerView recyclerView;
-    LinearLayoutManager mLayoutManager;
-    SQLiteDatabase db;
+    //Class variables
+    private RecyclerViewAdapter adapter;
+    private RecyclerView recyclerView;
+    private LinearLayoutManager mLayoutManager;
 
+    //SQLite variables
+    private SQLiteDatabase db;
     private static NewsStorage dbHelper;
-    public static ArrayList<ArrayList<NewsItem>> fifoList;
-    boolean searching = false;
-    ArrayList<NewsItem> data;
-    ArrayList<NewsItem> tempData;
 
+    //Used to determine if we are filtering the data or not.
+    boolean searching = false;
+
+    //Data used for displaying or store in memory
+    public static ArrayList<ArrayList<NewsItem>> fifoList;
+    private ArrayList<NewsItem> data;
+    private ArrayList<NewsItem> tempData;
+
+    //Used to determine if we are waiting for the recyclerview to update.
     boolean isLoading = false;
 
     @Override
@@ -43,14 +50,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         //Setup dbHelper
         dbHelper = new NewsStorage(getApplicationContext());
 
-        //Shared preferences
+        //Get sharedPreferences
         FeedPreferences.getPreferences(this);
 
         //Variables
         final Button btnSettings = findViewById(R.id.settings_button);
         final EditText filterTxt = findViewById(R.id.filter_txt);
 
+        //Initialize data arrayList
         data = new ArrayList<>();
+
+        //Initialize Adapter and add click listener
         adapter = new RecyclerViewAdapter(this, data);
         adapter.setClickListener(this);
 
@@ -61,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         Intent FetchIntent = new Intent(MainActivity.this, FetchNewsIntentService.class);
         startService(FetchIntent);
 
-        //Get newsItems from sqlite db
+        //Create items in the
         fifoList = splitData(db, FeedPreferences.Limit);
 
         if(fifoList.size() != 0) { //Check if there is data in the fifo list
@@ -74,8 +84,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             toast.show();
         }
 
-
-
+        //Update the recyclerview
         updateRecyclerView();
 
         //Set up the RecyclerView
@@ -85,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(mLayoutManager);
 
+        //Add 'infinte' scroll
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -99,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
                 if (!isLoading) {
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == data.size() - 1) {
-                        //bottom of list!
                         loadMore();
                         isLoading = true;
                     }
@@ -107,17 +116,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             }
         });
 
-
         //Settings button logic
         btnSettings.setOnClickListener(v -> {
             Intent I = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(I);
         });
 
+        //Filter textbox text watcher
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if( count != 0 ){
+                if( count != 0 ){ //Check if there are characters inputed
                     ArrayList<NewsItem> filterData = filterData(data ,s.toString());
                     adapter.setData(MainActivity.this, filterData);
                     searching = true;
@@ -139,24 +148,28 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     }
 
     private void loadMore() {
-
-        if(searching) {
+        if(searching) { //Dont load anything if we are currently filtering
             return;
         }
 
         Handler handler = new Handler();
+
+        //Do recyclerview endless loading on the ui thread.
         handler.post(() -> {
             int scrollPosition = data.size();
 
+            //Is there stuff left to add?
             if ( fifoList.size() != 0) {
+                //Always get the first element and then remove it.
                 ArrayList<NewsItem> newData = fifoList.get(0);
                 fifoList.remove(0);
 
-                for (int i = 0; i < newData.size(); i++) {
+                for (int i = 0; i < newData.size(); i++) { //Add the data to the recyclerview
                     data.add(newData.get(i));
                 }
             }
 
+            //Have we reached the end of the data?
             if (scrollPosition == dbHelper.countData(db)){
                 String message = "There are currently no more items to fetch. Check back later";
                 Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
@@ -173,11 +186,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     }
 
     public static ArrayList<NewsItem> filterData(ArrayList<NewsItem> m_data,String s){
-        ArrayList<NewsItem> temp = new ArrayList<>();
-            for(int i = 0; i < m_data.size(); i++) {
+        ArrayList<NewsItem> temp = new ArrayList<>(); //Temp return array
+            for(int i = 0; i < m_data.size(); i++) { //Loop over array
+                //Does the title or description contain the search string?
                 if(m_data.get(i).returnHeader().toLowerCase().contains(s.toLowerCase()) ||
                         m_data.get(i).returnDescription().toLowerCase().contains(s.toLowerCase())) {
-                    temp.add(m_data.get(i));
+                    temp.add(m_data.get(i)); //Add it to the return array
                 }
             }
 
@@ -186,36 +200,39 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
 
     @Override
-    public void onItemClick(View view, int position) { //Position corresponds to the item number in class XXX
+    public void onItemClick(View view, int position) { //Position corresponds to the item number in the recyclerView
         Intent I = new Intent(MainActivity.this, ViewContentActivity.class);
         I.putExtra("URL", adapter.getItem(position).returnLink());
         startActivity(I);
     }
 
 
-    public void updateRecyclerView(){
+    public void updateRecyclerView(){ //Updates the RecyclerView
        runOnUiThread(() -> adapter.notifyDataSetChanged());
     }
 
 
-
+    //Splits data into arrays of size Limit. Returns a Array of Arrays containing NewsItems
     public ArrayList<ArrayList<NewsItem>> splitData(SQLiteDatabase db, int limit){
-        ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>();
+        ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>(); //Temporary return array
 
+        //Get data from database
         ArrayList<NewsItem> dbData = dbHelper.getItems(db);
         ArrayList<NewsItem> temp;
 
+        //Loop over data as long as there still are data left
         while(dbData.size() > 0){
             int index = 0;
-            temp = new ArrayList<>();
+            temp = new ArrayList<>(); //Temporary arraylist
 
-            while (index != limit && dbData.size() > 0) {
-                temp.add(dbData.get(0));
-                dbData.remove(0);
+            while (index != limit && dbData.size() > 0) { //As long as index are less than limit
+                                                          // and there still are data left to loop over
+                temp.add(dbData.get(0)); //Add data to temp arraylist
+                dbData.remove(0);  //remove from database array list
                 index++;
             }
 
-            retList.add(temp);
+            retList.add(temp);  //Add temp arraylist to return array
         }
 
 
@@ -225,16 +242,18 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public static class FetchNewsIntentService extends Service {
 
         Handler mHandler;
+        FeedFetcher fetcher;
 
         @Override
         public void onCreate() {
             super.onCreate();
+            fetcher = new FeedFetcher(); //New fetcher object
         }
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
             mHandler = new Handler();
-            FetchNews();
+            FetchNews(); //Initial fetch
             return START_STICKY;
         }
 
@@ -251,19 +270,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         }
 
 
-        private void FetchNews(){
+        private void FetchNews(){ //Fetch news
             try {
-                FeedFetcher fetcher = new FeedFetcher();
-                fetcher.handleData(dbHelper);
-                Log.d("NewsFetch", "fetching news");
+                fetcher.handleData(dbHelper); //Fetch news
             } catch (Exception e) {
                 Log.e("Error", "In onStartCommand");
                 e.printStackTrace();
             }
-            scheduleNext();
+            scheduleNext(); //Schedule next fetch
         }
 
-        private void scheduleNext() {
+        private void scheduleNext() { //Wait for updateFreq time. Specified by user
             mHandler.postDelayed(() -> FetchNews(), FeedPreferences.updateFreq);
         }
 

@@ -117,7 +117,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterData(data ,s.toString(),count);
+                if( count != 0 ){
+                    ArrayList<NewsItem> filterData = filterData(data ,s.toString());
+                    adapter.setData(MainActivity.this, filterData);
+                    searching = true;
+                } else { //Revert back to original data
+                    adapter.setData(MainActivity.this, data);
+                    searching = false;
+                }
+                adapter.notifyDataSetChanged();
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
@@ -164,26 +172,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     }
 
-    public void filterData(ArrayList<NewsItem> m_data,String s, int count){
-        if (count != 0) {
-            //Use the filtered version
-            ArrayList<NewsItem> temp = new ArrayList<>();
+    public static ArrayList<NewsItem> filterData(ArrayList<NewsItem> m_data,String s){
+        ArrayList<NewsItem> temp = new ArrayList<>();
             for(int i = 0; i < m_data.size(); i++) {
                 if(m_data.get(i).returnHeader().toLowerCase().contains(s.toLowerCase()) ||
                         m_data.get(i).returnDescription().toLowerCase().contains(s.toLowerCase())) {
                     temp.add(m_data.get(i));
                 }
             }
-            //adapter.clear();
-            adapter.setData(MainActivity.this, temp);
-            searching = true;
-        } else {
-            //Revert data back to original
-            adapter.setData(MainActivity.this, m_data);
-            searching = false;
 
-        }
-        adapter.notifyDataSetChanged();
+        return temp;
     }
 
 

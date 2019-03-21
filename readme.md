@@ -5,6 +5,7 @@
 * The fetching is done in a service, however if the app is terminated (Closed shut by the OS or via the 'task manager') the fetching will stop. The fetching works correctly if the app is in the background.
 * Feed items are stored in a SQLite database, making it possible to browse already fetched items offline
 * My solution to endless scrolling might bring some problems if the SQLite database become very large, see the 'improvements' section for more information.
+* JUnit tests are provided in the "androidTest" folder. File name: FeedUnitTest.java
 
 ## Checklist: 
 
@@ -33,5 +34,8 @@
 * [ ] The app has JUnit Tests for testing the parsing, and the filtering functionality.
 
 ## Improvements:
-* Right now the whole dataset is fetched from the SQLite db and stored in memory. An improvement is too only load X amount of items at a time.
+* Right now the whole dataset is fetched from the SQLite db and stored in memory. An improvement is to only load X amount of items at a time instead.
 * The UI could display pictures if there are any associated with the feed item
+
+
+Icons made by Freepik from www.flaticon.com

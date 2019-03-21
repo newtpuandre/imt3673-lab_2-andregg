@@ -21,17 +21,39 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class FeedUnitTest {
     @Test
-    public void useAppContext() {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
-
-        assertEquals("local.andregg.lab_2", appContext.getPackageName());
-    }
-
-    @Test
     public void FilterTest(){
+        //Variables.
+        ArrayList<NewsItem> dataSet = new ArrayList<>();
+        NewsItem temp;
 
-        assertEquals(true, true);
+        //Create items for testing
+        for(int i = 0; i < 10; i++) {
+            temp = new NewsItem(i, "SomeLink", "SomeHeader", "SomeDescription");
+            dataSet.add(temp);
+        }
+
+        //Add 2 items we are filtering for.
+        temp = new NewsItem(11, "SomeLink", "Fake news article", "Android tutorial");
+        dataSet.add(temp);
+        temp = new NewsItem(12, "SomeLink", "Serious news does something", "Android exposed to hackers");
+        dataSet.add(temp);
+
+        //Get the Array with the filtered items.
+        ArrayList<NewsItem> filteredDataSet = MainActivity.filterData(dataSet, "news");
+
+        //Check that the size of the array is the expected size
+        assertEquals(2, filteredDataSet.size());
+
+        //Check that the headers contains the word news
+        for (int i = 0; i < filteredDataSet.size(); i++) {
+            assertTrue(filteredDataSet.get(i).returnHeader().toLowerCase().contains("news"));
+        }
+
+        //Check that the description contains the word android
+        for (int i = 0; i < filteredDataSet.size(); i++) {
+            assertTrue(filteredDataSet.get(i).returnDescription().toLowerCase().contains("android"));
+        }
+
     }
 
     @Test

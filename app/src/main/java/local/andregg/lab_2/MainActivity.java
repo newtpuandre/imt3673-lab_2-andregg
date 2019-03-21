@@ -129,25 +129,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         filterTxt.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (count != 0) { //TODO Move to a function.
-                    //Use the filtered version
-                    ArrayList<NewsItem> temp = new ArrayList<>();
-                    for(int i = 0; i < data.size(); i++) {
-                        if(data.get(i).returnHeader().toLowerCase().contains(s.toString().toLowerCase()) ||
-                                data.get(i).returnDescription().toLowerCase().contains(s.toString().toLowerCase())) {
-                            temp.add(data.get(i));
-                        }
-                    }
-                    //adapter.clear();
-                    adapter.setData(MainActivity.this, temp);
-                    searching = true;
-                } else {
-                    //Revert data back to original
-                    adapter.setData(MainActivity.this, data);
-                    searching = false;
-
-                }
-                adapter.notifyDataSetChanged();
+                filterData(s.toString(),count);
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { //Do nothing
@@ -165,10 +147,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         if(searching) {
             return;
         }
+
         Handler handler = new Handler();
         handler.post(() -> {
             int scrollPosition = data.size();
-            Log.d("app1", "Fifolist size" + fifoList.size());
 
             if ( fifoList.size() != 0) {
                 ArrayList<NewsItem> newData = fifoList.get(0);
@@ -185,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 toast.show();
             }
 
-
             adapter.notifyDataSetChanged();
             isLoading = false;
         });
@@ -193,6 +174,28 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
 
 
+    }
+
+    public void filterData(String s, int count){
+        if (count != 0) {
+            //Use the filtered version
+            ArrayList<NewsItem> temp = new ArrayList<>();
+            for(int i = 0; i < data.size(); i++) {
+                if(data.get(i).returnHeader().toLowerCase().contains(s.toLowerCase()) ||
+                        data.get(i).returnDescription().toLowerCase().contains(s.toLowerCase())) {
+                    temp.add(data.get(i));
+                }
+            }
+            //adapter.clear();
+            adapter.setData(MainActivity.this, temp);
+            searching = true;
+        } else {
+            //Revert data back to original
+            adapter.setData(MainActivity.this, data);
+            searching = false;
+
+        }
+        adapter.notifyDataSetChanged();
     }
 
 
@@ -206,8 +209,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
     public void updateRecyclerView(){
        runOnUiThread(() -> adapter.notifyDataSetChanged());
-
     }
+
+
 
     public ArrayList<ArrayList<NewsItem>> splitData(SQLiteDatabase db, int limit){
         ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>();

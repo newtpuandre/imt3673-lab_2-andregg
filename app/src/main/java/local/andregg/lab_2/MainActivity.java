@@ -106,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 super.onScrolled(recyclerView, dx, dy);
 
                 LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-
                 if (!isLoading) {
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == data.size() - 1) {
                         loadMore();
@@ -212,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     }
 
 
-    //Splits data into arrays of size Limit. Returns a Array of Arrays containing NewsItems
+    //Splits data from db into arrays of size Limit. Returns a Array of Arrays containing NewsItems
     public ArrayList<ArrayList<NewsItem>> splitData(SQLiteDatabase db, int limit){
         ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>(); //Temporary return array
 
@@ -232,6 +231,45 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 index++;
             }
 
+            retList.add(temp);  //Add temp arraylist to return array
+        }
+
+
+        return retList;
+    }
+
+    //Consolidates all data back together and splits them into size LIMIT.
+    public static ArrayList<ArrayList<NewsItem>> consolidateData(ArrayList<ArrayList<NewsItem>> m_fifolist){
+        ArrayList<ArrayList<NewsItem>> retList = new ArrayList<>(); //Temporary return array
+
+        ArrayList<ArrayList<NewsItem>> tempFifo = m_fifolist; //Copy of fifolist
+        ArrayList<NewsItem> dbData = new ArrayList<>();
+
+        //Loop over fifo list and add it to an array
+        while(tempFifo.size() > 0) {
+            //Remove and loop over a single array from the fifolist
+            ArrayList<NewsItem> temps = tempFifo.get(tempFifo.size()-1);
+            tempFifo.remove(tempFifo.size()-1);
+            //Loop over elements
+            while (temps.size() > 0) {
+                //Add to the array which we are handling
+                dbData.add(0, temps.get(temps.size() -1));
+                temps.remove(temps.size() -1);
+            }
+        }
+
+        ArrayList<NewsItem> temp;
+
+        //Loop over data as long as there still are data left
+        while(dbData.size() > 0){
+            int index = 0;
+            temp = new ArrayList<>(); //Temporary arraylist
+            while (index != FeedPreferences.Limit && dbData.size() > 0) { //As long as index are less than limit
+                // and there still are data left to loop over
+                temp.add(dbData.get(0)); //Add data to temp arraylist
+                dbData.remove(0);  //remove from database array list
+                index++;
+            }
             retList.add(temp);  //Add temp arraylist to return array
         }
 

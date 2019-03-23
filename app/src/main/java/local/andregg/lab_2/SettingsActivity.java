@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -64,6 +65,11 @@ public class SettingsActivity extends AppCompatActivity {
 
             //Update the variables that the rest of the app uses.
             FeedPreferences.getPreferences(this);
+            MainActivity.fifoList = MainActivity.consolidateData(MainActivity.fifoList);
+
+            String message = "Settings have been updated.";
+            Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
+            toast.show();
         });
     }
 }

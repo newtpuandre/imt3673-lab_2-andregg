@@ -1,7 +1,7 @@
 # imt3673-lab_2-andregg
 
 ## Notes:
-* The app is created using the Android API 28 ( Android Pie ), this is a bad assumption from my side...
+* The app is created using the Android API 28 ( Android Pie ), this is a bad assumption from my side... (I can show the app in person on my phone if needed)
 * I used a library called [Rome](https://github.com/rometools/rome) to parse the RSS and ATOM feeds provided by the user.
 * The fetching is done in a service, however if the app is terminated (Closed shut by the OS or via the 'task manager') the fetching will stop. The fetching works correctly if the app is in the background.
 * Feed items are stored in a SQLite database, making it possible to browse already fetched items offline
